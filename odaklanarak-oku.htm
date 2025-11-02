@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Odaklanarak Oku</title>
+    <!-- Tailwind CSS CDN'i -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Sayfanın varsayılan fontunu Inter olarak ayarla (Tailwind'in varsayılanı) -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Kaydırma çubuğu stilleri (daha koyu temaya uygun) */
+        textarea::-webkit-scrollbar {
+            width: 12px;
+        }
+        textarea::-webkit-scrollbar-track {
+            background: #1f2937; /* bg-gray-800 */
+        }
+        textarea::-webkit-scrollbar-thumb {
+            background-color: #374151; /* bg-gray-700 */
+            border-radius: 20px;
+            border: 3px solid #1f2937; /* bg-gray-800 */
+        }
+        textarea::-webkit-scrollbar-thumb:hover {
+            background-color: #4b5563; /* bg-gray-600 */
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-300 min-h-screen p-4 sm:p-8 font-sans">
+
+    <div class="max-w-4xl mx-auto">
+        
+        <!-- Başlık -->
+        <h1 class="text-3xl sm:text-4xl font-bold text-center mb-6 text-white">
+            Odaklanarak Oku
+        </h1>
+
+        <!-- Kontrol Paneli -->
+        <div class="flex flex-wrap gap-x-6 gap-y-4 items-center justify-center mb-6 bg-gray-800 p-4 rounded-lg shadow-md">
+            
+            <!-- Font Boyutu -->
+            <div class="flex items-center gap-2">
+                <span class="text-sm font-medium text-gray-400">Yazı Boyutu</span>
+                <button id="fontSizeDec" class="bg-blue-600 hover:bg-blue-700 text-white font-bold w-8 h-8 rounded-full flex items-center justify-center transition-colors shadow-sm" aria-label="Yazı boyutunu küçült">-</button>
+                <button id="fontSizeInc" class="bg-blue-600 hover:bg-blue-700 text-white font-bold w-8 h-8 rounded-full flex items-center justify-center transition-colors shadow-sm" aria-label="Yazı boyutunu büyüt">+</button>
+            </div>
+
+            <!-- Satır Aralığı -->
+            <div class="flex items-center gap-2">
+                <span class="text-sm font-medium text-gray-400">Satır Aralığı</span>
+                <button id="lineHeightDec" class="bg-blue-600 hover:bg-blue-700 text-white font-bold w-8 h-8 rounded-full flex items-center justify-center transition-colors shadow-sm" aria-label="Satır aralığını azalt">-</button>
+                <button id="lineHeightInc" class="bg-blue-600 hover:bg-blue-700 text-white font-bold w-8 h-8 rounded-full flex items-center justify-center transition-colors shadow-sm" aria-label="Satır aralığını artır">+</button>
+            </div>
+
+            <!-- Harf Aralığı -->
+            <div class="flex items-center gap-2">
+                <span class="text-sm font-medium text-gray-400">Harf Aralığı</span>
+                <button id="letterSpacingDec" class="bg-blue-600 hover:bg-blue-700 text-white font-bold w-8 h-8 rounded-full flex items-center justify-center transition-colors shadow-sm" aria-label="Harf aralığını azalt">-</button>
+                <button id="letterSpacingInc" class="bg-blue-600 hover:bg-blue-700 text-white font-bold w-8 h-8 rounded-full flex items-center justify-center transition-colors shadow-sm" aria-label="Harf aralığını artır">+</button>
+            </div>
+
+            <!-- Temizle Butonu -->
+            <button id="clearButton" class="bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-lg transition-colors shadow-sm">
+                Temizle
+            </button>
+        </div>
+
+        <!-- Metin Alanı -->
+        <textarea id="reader-area"
+            class="w-full h-[60vh] sm:h-[55vh] bg-gray-800 text-gray-200 p-6 sm:p-10 rounded-lg shadow-inner focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200"
+            placeholder="Metni buraya yapıştırın..."></textarea>
+        
+        <!-- YENİ BÖLÜM: İstatistikler -->
+        <div class="mt-6 bg-gray-800 p-4 sm:p-6 rounded-lg shadow-md">
+            <h2 class="text-xl font-bold text-white mb-4 text-center">Metin İstatistikleri</h2>
+            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4 text-center">
+                
+                <!-- Kelime -->
+                <div class="bg-gray-700 p-3 rounded-lg">
+                    <span class="text-sm font-medium text-gray-400 block">Kelime</span>
+                    <span id="stat-words" class="text-2xl font-bold text-white">0</span>
+                </div>
+                <!-- Karakter -->
+                <div class="bg-gray-700 p-3 rounded-lg">
+                    <span class="text-sm font-medium text-gray-400 block">Karakter</span>
+                    <span id="stat-chars" class="text-2xl font-bold text-white">0</span>
+                </div>
+                <!-- Cümle -->
+                <div class="bg-gray-700 p-3 rounded-lg">
+                    <span class="text-sm font-medium text-gray-400 block">Cümle</span>
+                    <span id="stat-sentences" class="text-2xl font-bold text-white">0</span>
+                </div>
+                <!-- Paragraf -->
+                <div class="bg-gray-700 p-3 rounded-lg">
+                    <span class="text-sm font-medium text-gray-400 block">Paragraf</span>
+                    <span id="stat-paragraphs" class="text-2xl font-bold text-white">0</span>
+                </div>
+                <!-- Hece (Yaklaşık) -->
+                <div class="bg-gray-700 p-3 rounded-lg" title="Türkçe'deki sesli harfleri sayar (yaklaşık değer).">
+                    <span class="text-sm font-medium text-gray-400 block">Hece (?)</span>
+                    <span id="stat-syllables" class="text-2xl font-bold text-white">0</span>
+                </div>
+                <!-- Satır -->
+                <div class="bg-gray-700 p-3 rounded-lg">
+                    <span class="text-sm font-medium text-gray-400 block">Satır</span>
+                    <span id="stat-lines" class="text-2xl font-bold text-white">0</span>
+                </div>
+                <!-- Sayfa -->
+                <div class="bg-gray-700 p-3 rounded-lg" title="Ortalama 250 kelime = 1 sayfa olarak hesaplanmıştır.">
+                    <span class="text-sm font-medium text-gray-400 block">Sayfa (?)</span>
+                    <span id="stat-pages" class="text-2xl font-bold text-white">0</span>
+                </div>
+                <!-- Okuma Süresi -->
+                <div class="bg-gray-700 p-3 rounded-lg col-span-1 md:col-span-1" title="Dakikada 180 kelime (WPM) baz alınmıştır.">
+                    <span class="text-sm font-medium text-gray-400 block">Okuma Süresi</span>
+                    <span id="stat-reading-time" class="text-lg font-bold text-white">0 saniye</span>
+                </div>
+                <!-- Konuşma Süresi -->
+                <div class="bg-gray-700 p-3 rounded-lg col-span-2 md:col-span-2" title="Dakikada 130 kelime (WPM) baz alınmıştır.">
+                    <span class="text-sm font-medium text-gray-400 block">Konuşma Süresi</span>
+                    <span id="stat-speaking-time" class="text-lg font-bold text-white">0 saniye</span>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Durum Mesajı -->
+        <p id="status-message" class="text-center text-gray-500 mt-4 text-sm">
+            Sayfa yüklendi. Pano okunuyor...
+        </p>
+
+    </div>
+
+    <script>
+        // --- Temel Elementler ---
+        const textArea = document.getElementById('reader-area');
+        const statusMsg = document.getElementById('status-message');
+        
+        // --- Kontrol Butonları ---
+        const fontSizeInc = document.getElementById('fontSizeInc');
+        const fontSizeDec = document.getElementById('fontSizeDec');
+        const lineHeightInc = document.getElementById('lineHeightInc');
+        const lineHeightDec = document.getElementById('lineHeightDec');
+        const letterSpacingInc = document.getElementById('letterSpacingInc');
+        const letterSpacingDec = document.getElementById('letterSpacingDec');
+        const clearButton = document.getElementById('clearButton');
+
+        // --- İstatistik Elementleri ---
+        const statWords = document.getElementById('stat-words');
+        const statChars = document.getElementById('stat-chars');
+        const statSyllables = document.getElementById('stat-syllables');
+        const statSentences = document.getElementById('stat-sentences');
+        const statParagraphs = document.getElementById('stat-paragraphs');
+        const statLines = document.getElementById('stat-lines');
+        const statPages = document.getElementById('stat-pages');
+        const statReadingTime = document.getElementById('stat-reading-time');
+        const statSpeakingTime = document.getElementById('stat-speaking-time');
+
+        // Okunabilirlik ayarları
+        let state = {
+            fontSize: 18,
+            lineHeight: 1.7,
+            letterSpacing: 0.5
+        };
+
+        const STEPS = {
+            fontSize: 2,
+            lineHeight: 0.1,
+            letterSpacing: 0.1
+        };
+
+        const LIMITS = {
+            fontSize: { min: 12, max: 40 },
+            lineHeight: { min: 1.2, max: 2.5 },
+            letterSpacing: { min: 0, max: 3 }
+        };
+
+        // --- Stil Güncelleme Fonksiyonu ---
+        function updateTextAreaStyle() {
+            textArea.style.fontSize = `${state.fontSize}px`;
+            textArea.style.lineHeight = `${state.lineHeight}`;
+            textArea.style.letterSpacing = `${state.letterSpacing}px`;
+            
+            fontSizeInc.disabled = state.fontSize >= LIMITS.fontSize.max;
+            fontSizeDec.disabled = state.fontSize <= LIMITS.fontSize.min;
+            lineHeightInc.disabled = state.lineHeight >= LIMITS.lineHeight.max;
+            lineHeightDec.disabled = state.lineHeight <= LIMITS.lineHeight.min;
+            letterSpacingInc.disabled = state.letterSpacing >= LIMITS.letterSpacing.max;
+            letterSpacingDec.disabled = state.letterSpacing <= LIMITS.letterSpacing.min;
+        }
+
+        // --- Zaman Formatlama Yardımcısı ---
+        function formatTime(totalMinutes) {
+            if (totalMinutes === 0) return '0 saniye';
+            
+            const minutes = Math.floor(totalMinutes);
+            const seconds = Math.round((totalMinutes - minutes) * 60);
+            
+            let result = '';
+            if (minutes > 0) {
+                result += `${minutes} dakika `;
+            }
+            if (seconds > 0) {
+                result += `${seconds} saniye`;
+            }
+            // Sadece saniye varsa (örn: 0.5 dakika -> 30 saniye)
+            return result.trim() || '0 saniye';
+        }
+
+        // --- İstatistik Hesaplama Fonksiyonu ---
+        function updateStatistics() {
+            const text = textArea.value;
+
+            // Eğer metin boşsa, her şeyi 0 yap
+            if (text.length === 0) {
+                statWords.textContent = 0;
+                statChars.textContent = 0;
+                statSyllables.textContent = 0;
+                statSentences.textContent = 0;
+                statParagraphs.textContent = 0;
+                statLines.textContent = 0;
+                statPages.textContent = 0;
+                statReadingTime.textContent = '0 saniye';
+                statSpeakingTime.textContent = '0 saniye';
+                return;
+            }
+
+            // 1. Hesaplamalar
+            const charCount = text.length;
+            const wordCount = (text.match(/\S+/g) || []).length;
+            // Hece: Basitçe sesli harfleri sayar (Türkçe için %100 doğru değil ama iyi bir tahmin)
+            const syllableCount = (text.match(/[aeıioöuüAEIİOÖUÜ]/g) || []).length; 
+            // Cümle: . ! ? ... ile bitenleri sayar
+            const sentenceCount = (text.split(/[.!?…]+(?=\s|$)/).filter(s => s.trim().length > 0).length);
+            // Paragraf: Çift satır boşluklarıyla ayrılanları sayar
+            const paragraphCount = text.split(/\n+/).filter(p => p.trim().length > 0).length;
+            // Satır: Her yeni satırı (\n) sayar
+            const lineCount = text.split('\n').length; 
+            
+            // 2. Süre ve Sayfa Hesaplamaları (Ortalama değerler)
+            const WPM_READ = 180;    // Okuma (Dakika Başına Kelime)
+            const WPM_SPEAK = 130;   // Konuşma (Dakika Başına Kelime)
+            const WPP_PAGE = 250;    // Sayfa Başına Kelime
+
+            const readingTime = wordCount / WPM_READ;
+            const speakingTime = wordCount / WPM_SPEAK;
+            const pageCount = Math.ceil(wordCount / WPP_PAGE);
+
+            // 3. DOM Güncelleme
+            statChars.textContent = charCount;
+            statWords.textContent = wordCount;
+            statSyllables.textContent = syllableCount;
+            statSentences.textContent = sentenceCount;
+            statParagraphs.textContent = paragraphCount;
+            statLines.textContent = lineCount;
+            statPages.textContent = pageCount;
+            statReadingTime.textContent = formatTime(readingTime);
+            statSpeakingTime.textContent = formatTime(speakingTime);
+        }
+
+        // --- Kontrol Butonları Event Listeners ---
+        fontSizeInc.addEventListener('click', () => {
+            if (state.fontSize < LIMITS.fontSize.max) {
+                state.fontSize += STEPS.fontSize;
+                updateTextAreaStyle();
+            }
+        });
+        fontSizeDec.addEventListener('click', () => {
+            if (state.fontSize > LIMITS.fontSize.min) {
+                state.fontSize -= STEPS.fontSize;
+                updateTextAreaStyle();
+            }
+        });
+        lineHeightInc.addEventListener('click', () => {
+            if (state.lineHeight < LIMITS.lineHeight.max) {
+                state.lineHeight = parseFloat((state.lineHeight + STEPS.lineHeight).toFixed(2));
+                updateTextAreaStyle();
+            }
+        });
+        lineHeightDec.addEventListener('click', () => {
+            if (state.lineHeight > LIMITS.lineHeight.min) {
+                state.lineHeight = parseFloat((state.lineHeight - STEPS.lineHeight).toFixed(2));
+                updateTextAreaStyle();
+            }
+        });
+        letterSpacingInc.addEventListener('click', () => {
+            if (state.letterSpacing < LIMITS.letterSpacing.max) {
+                state.letterSpacing = parseFloat((state.letterSpacing + STEPS.letterSpacing).toFixed(2));
+                updateTextAreaStyle();
+            }
+        });
+        letterSpacingDec.addEventListener('click', () => {
+            if (state.letterSpacing > LIMITS.letterSpacing.min) {
+                state.letterSpacing = parseFloat((state.letterSpacing - STEPS.letterSpacing).toFixed(2));
+                updateTextAreaStyle();
+            }
+        });
+
+        // Temizle Butonu (GÜNCELLENDİ: İstatistikleri sıfırlar)
+        clearButton.addEventListener('click', () => {
+            textArea.value = '';
+            statusMsg.textContent = 'Metin alanı temizlendi.';
+            updateStatistics(); // İstatistikleri sıfırla
+        });
+
+        // Metin değiştikçe istatistikleri güncelle
+        textArea.addEventListener('input', updateStatistics);
+
+
+        // --- Pano Okuma Fonksiyonu (GÜNCELLENDİ: İstatistikleri tetikler) ---
+        async function pasteFromClipboard() {
+            if (!navigator.clipboard || !navigator.clipboard.readText) {
+                statusMsg.textContent = 'Panoyu otomatik okuma desteklenmiyor. Lütfen manuel yapıştırın.';
+                return;
+            }
+
+            try {
+                const text = await navigator.clipboard.readText();
+                
+                if (text && text.trim().length > 0) {
+                    textArea.value = text;
+                    statusMsg.textContent = 'Pano\'dan metin başarıyla yapıştırıldı.';
+                    updateStatistics(); // Yapıştırıldıktan sonra istatistikleri güncelle
+                } else {
+                    statusMsg.textContent = 'Pano boş. Okumak için metin yapıştırın.';
+                }
+            } catch (err) {
+                console.error('Pano okuma hatası:', err);
+                if (err.name === 'NotAllowedError') {
+                    if (!document.hasFocus()) {
+                         statusMsg.textContent = 'Panoyu okumak için lütfen sayfaya tıklayın.';
+                    } else {
+                        statusMsg.textContent = 'Panoya erişim izni reddedildi. Manuel yapıştırabilirsiniz.';
+                    }
+                } else {
+                     statusMsg.textContent = 'Panoya erişilemedi. Metni manuel yapıştırabilirsiniz.';
+                }
+            }
+        }
+
+        // --- Başlangıç (GÜNCELLENDİ: İstatistikleri başlatır) ---
+        window.addEventListener('load', () => {
+            updateTextAreaStyle(); // Varsayılan stilleri uygula
+            updateStatistics();    // İstatistikleri (0 olarak) başlat
+            
+            if (document.hasFocus()) {
+                pasteFromClipboard();
+            } else {
+                window.addEventListener('focus', pasteFromClipboard, { once: true });
+                statusMsg.textContent = 'Panoyu okumak için lütfen sayfaya tıklayın.';
+            }
+        });
+
+    </script>
+</body>
+</html>
+
