@@ -37,6 +37,17 @@
             scrollbar-width: thin;
             scrollbar-color: #4a5568 #2d3748;
         }
+        
+        /* Chrome, Safari, Edge, Opera'da number input'un oklarını gizle */
+        input::-webkit-outer-spin-button,
+        input::-webkit-inner-spin-button {
+          -webkit-appearance: none;
+          margin: 0;
+        }
+        /* Firefox'ta number input'un oklarını gizle */
+        input[type=number] {
+          -moz-appearance: textfield;
+        }
 
         /* İstatistik kutucukları için tooltip */
         [data-tooltip] {
@@ -119,7 +130,9 @@
             <!-- Hız Ayarı (WPM) -->
             <div class="flex items-center gap-2">
                 <input id="wpmSlider" type="range" min="100" max="800" value="250" class="w-24 sm:w-32 cursor-pointer">
-                <span id="wpmDisplay" class="text-white w-16 text-sm font-medium">250 K/D</span>
+                <!-- DEĞİŞTİ: Manuel Girdi -->
+                <input id="wpmInput" type="number" min="100" max="800" value="250" class="w-16 bg-gray-700 text-white text-center rounded-lg py-1 px-0 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <span class="text-white w-8 text-sm font-medium">K/D</span>
             </div>
             <!-- Kontrol Butonları -->
             <div class="flex items-center gap-2">
@@ -227,7 +240,7 @@
         const pauseButton = document.getElementById('pauseButton');
         const resetButton = document.getElementById('resetButton');
         const wpmSlider = document.getElementById('wpmSlider');
-        const wpmDisplay = document.getElementById('wpmDisplay');
+        const wpmInput = document.getElementById('wpmInput'); // DEĞİŞTİ
         const readerDisplay = document.getElementById('reader-display');
 
         // --- İstatistik Elementleri ---
@@ -561,11 +574,37 @@
             resetReading();
         });
 
+        // GÜNCELLENDİ: Hız Kaydırıcısı
         wpmSlider.addEventListener('input', () => {
             wpm = parseInt(wpmSlider.value, 10);
-            wpmDisplay.textContent = `${wpm} K/D`;
+            wpmInput.value = wpm; // Input kutusunu slider ile senkronize et
             
             // Eğer zaten okuyorsa, yeni hızla devam et
+            if (isReading) {
+                stopReading();
+                startReading();
+            }
+        });
+
+        // YENİ: Manuel Hız Girdisi
+        wpmInput.addEventListener('change', () => { // 'change' event'i (blur veya Enter)
+            const minWPM = parseInt(wpmSlider.min, 10);
+            const maxWPM = parseInt(wpmSlider.max, 10);
+            let newValue = parseInt(wpmInput.value, 10);
+
+            // Doğrulama (min/max dışı veya geçersiz sayı)
+            if (isNaN(newValue) || newValue < minWPM) {
+                newValue = minWPM;
+            } else if (newValue > maxWPM) {
+                newValue = maxWPM;
+            }
+
+            // Global state'i ve UI'yı güncelle
+            wpm = newValue;
+            wpmInput.value = wpm; // Kutuya düzeltilmiş değeri yaz
+            wpmSlider.value = wpm; // Slider'ı ayarla
+
+            // Okuyucuyu yeniden başlat
             if (isReading) {
                 stopReading();
                 startReading();
